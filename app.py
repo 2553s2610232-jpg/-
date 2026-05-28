@@ -1,31 +1,9 @@
 import streamlit as st
 import streamlit.components.v1 as components
 
-st.set_page_config(page_title="Pachinko Game", layout="centered")
-
-st.title("🎰 Streamlit Pachinko")
+st.set_page_config(page_title="Pachinko")
 
 html_code = """
-<!DOCTYPE html>
-<html>
-<head>
-<style>
-    body {
-        margin: 0;
-        overflow: hidden;
-        background: #111;
-    }
-
-    canvas {
-        background: #222;
-        display: block;
-        margin: auto;
-        border: 2px solid white;
-    }
-</style>
-</head>
-<body>
-
 <canvas id="gameCanvas" width="500" height="700"></canvas>
 
 <script>
@@ -33,18 +11,14 @@ const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
 const pegs = [];
-const pegRadius = 6;
+const pegRadius = 5;
 
-const rows = 10;
-const spacing = 45;
+for (let row = 0; row < 8; row++) {
+    for (let col = 0; col < 8; col++) {
 
-for (let row = 0; row < rows; row++) {
-    const cols = row + 3;
-
-    for (let col = 0; col < cols; col++) {
         pegs.push({
-            x: 80 + col * spacing - row * spacing / 2,
-            y: 100 + row * spacing
+            x: 80 + col * 45 + (row % 2) * 20,
+            y: 120 + row * 45
         });
     }
 }
@@ -57,95 +31,79 @@ let ball = {
     radius: 10
 };
 
-let gravity = 0.25;
-let dropped = false;
-
 function resetBall() {
     ball.x = 250;
     ball.y = 30;
-    ball.vx = (Math.random() - 0.5) * 2;
-    ball.vy = 0;
-    dropped = true;
+    ball.vx = (Math.random() - 0.5) * 4;
+    ball.vy = 1;
 }
 
-canvas.addEventListener("click", () => {
-    if (!dropped) {
-        resetBall();
-    }
-});
+resetBall();
 
 function update() {
 
-    if (dropped) {
-        ball.vy += gravity;
+    ball.vy += 0.2;
 
-        ball.x += ball.vx;
-        ball.y += ball.vy;
+    ball.x += ball.vx;
+    ball.y += ball.vy;
 
-        // 벽 충돌
-        if (ball.x < ball.radius || ball.x > canvas.width - ball.radius) {
-            ball.vx *= -0.9;
+    // 벽 충돌
+    if (ball.x < 10 || ball.x > 490) {
+        ball.vx *= -1;
+    }
+
+    // 핀 충돌
+    pegs.forEach(peg => {
+
+        const dx = ball.x - peg.x;
+        const dy = ball.y - peg.y;
+
+        const dist = Math.sqrt(dx*dx + dy*dy);
+
+        if (dist < 15) {
+            ball.vx += dx * 0.03;
+            ball.vy *= -0.7;
         }
+    });
 
-        // 핀 충돌
-        pegs.forEach(peg => {
-            const dx = ball.x - peg.x;
-            const dy = ball.y - peg.y;
-
-            const dist = Math.sqrt(dx * dx + dy * dy);
-
-            if (dist < ball.radius + pegRadius) {
-
-                // 튕김 방향
-                ball.vx += dx * 0.05;
-                ball.vy *= -0.7;
-            }
-        });
-
-        // 바닥 도달
-        if (ball.y > canvas.height - 20) {
-            dropped = false;
-        }
+    // 바닥 도달 시 리셋
+    if (ball.y > 680) {
+        resetBall();
     }
 }
 
 function draw() {
 
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "#111";
+    ctx.fillRect(0,0,500,700);
 
     // 핀
+    ctx.fillStyle = "white";
+
     pegs.forEach(peg => {
         ctx.beginPath();
-        ctx.arc(peg.x, peg.y, pegRadius, 0, Math.PI * 2);
-        ctx.fillStyle = "white";
+        ctx.arc(peg.x, peg.y, pegRadius, 0, Math.PI*2);
         ctx.fill();
     });
 
     // 공
-    ctx.beginPath();
-    ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
     ctx.fillStyle = "gold";
+    ctx.beginPath();
+    ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI*2);
     ctx.fill();
-
-    // 안내 문구
-    ctx.fillStyle = "white";
-    ctx.font = "20px Arial";
-    ctx.fillText("Click to Drop Ball", 150, 40);
 }
 
-function gameLoop() {
+function animate() {
     update();
     draw();
-    requestAnimationFrame(gameLoop);
+    requestAnimationFrame(animate);
 }
 
-gameLoop();
+animate();
 
 </script>
-
-</body>
-</html>
 """
 
 components.html(html_code, height=720)
-const slots = [10, 50, 100, 0, 500];
+
+st.write("파칭코 게임 실행 중")
