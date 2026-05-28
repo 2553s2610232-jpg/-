@@ -148,3 +148,4 @@ gameLoop();
 """
 
 components.html(html_code, height=720)
+const slots = [10, 50, 100, 0, 500];
